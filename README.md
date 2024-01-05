@@ -2,6 +2,8 @@
 
 本文主要对[FTE.com](https://fte.com/default.aspx)的Virtual Sniff机制进行说明和实现。
 
+仓库源码为：[bobwenstudy/bt_fte_virtual_sniff: 蓝牙实时hci日志打印-FTE的Virtual Sniffing机制说明 (github.com)](https://github.com/bobwenstudy/bt_fte_virtual_sniff)
+
 ## PTS自带Bluetooth Protocol Viewer
 
 最开始是用PTS（[PTS Release (bluetooth.com)](https://pts.bluetooth.com/download)）时，会看到PTS运行过程中有实时打印蓝牙的HCI日志，所以就想去了解怎么实现的。直接看PTS自带的Protocol View下资料很少。
