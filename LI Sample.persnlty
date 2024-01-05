@@ -1,0 +1,506 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; LI Sample.Personality
+;;
+;; Sample personality file for use with FTS4BT LiveImport (Virtual Sniffing)
+;;
+;; This sample sets up Virtual Sniffing of Bluetooth HCI using a number of
+;; different "transports":
+;;
+;; "Packet" : HCI commands, events and data are delivered to FTS4BT as complete
+;;            packets using BTLISendPacket(). DRFs are used to select between
+;;            Command, Event, ACL Data and SCO data.
+;;
+;; "H4"     : HCI commands, events and data are delivered to FTS4BT in a stream
+;;            of bytes one byte at a time using BTLISendByte(). The data stream
+;;            is formatted according to HCI UART (aka H4).
+;;
+;; "H5"     : HCI commands, events and data are delivered to FTS4BT in a stream
+;;            of bytes one byte at a time using BTLISendByte(). The data stream
+;;            is formatted according to Three Wire UART (aka H5).
+;;
+;; "BCSP"   : HCI commands, events and data are delivered to FTS4BT in a stream
+;;            of bytes one byte at a time using BTLISendByte(). The data stream
+;;            is formatted according to the BlueCore Serial Protocol (aka BCSP).
+;;
+;; There are three sections that must be provided
+;;
+;; [General]            Contains the name of the connection to be used from your
+;;                      Datasource to FTS (aka FTS4BT) LiveImport.
+;;
+;; [Configuration]      A description of the communications environment and
+;;                      other information about the data you will be sending
+;;                      to FTS4BT via your Datasource.
+;;
+;; [Personality`...]    A description of the protocol decoding environment for
+;;                      for the data that you will be sending.
+;;
+;;------------------------------------------------------------------------------
+;;
+;; You MAY find that you can use this sample file with your application largely
+;; unchanged. There are two areas however that we STRONGLY suggest that you
+;; modify.
+;;
+;; In the [General] section we recommend that you change the "ConnectionString"
+;; item.
+;;
+;; In the [Personality`...] sections we recommend that you change the names
+;; of the Personalities.
+;;
+;; In each of these sections there is text following "PLEASE READ THIS" where
+;; will find a discussion of why it is important to make these changes.
+;;
+;;------------------------------------------------------------------------------
+;;
+;; This file MUST be stored in a location FTS4BT can find it. FTS4BT will search
+;; for .Personality files in
+;;
+;;      <product installation>\App Data\Decoders and any subfolders
+;;      <My Decoders> and any subfolders
+;;
+;; Note that <My Decoders> may be in different locations depending on the
+;; version of FTS4BT that you are using and optional user configuration
+;; settings.
+;;
+;; For versions of FTS4BT PRIOR to 6.8.4.0, the default location is
+;;
+;;      <product installation>\My Decoders
+;;
+;; For versions of FTS4BT 6.8.4.0 to 8.5.5.0, the default location is
+;;
+;;      C:\Program Files\Common Files\FTE\My Decoders
+;;
+;; For versions of FTS4BT 8.7.12.0 and later, the default location is
+;;
+;;      C:\Documents and Settings\All Users\Documents\Frontline Test Equipment\My Decoders
+;;
+;; For any version, the user may change the default location for My Decoders
+;; via the Directories item on the Options menu.
+;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; [General]
+;;
+[General]
+;
+; The "ConnectionString" entry can contain any text that you like. The
+; important part is that should be reasonably unique.
+;
+; The connection string is used by FTS4BT and your Datasource to locate each
+; other. (This is why the string needs to be somewhat unique.) If the two
+; programs are using different connection strings, then they will not find each
+; other and no data will be transferred from your Datasource.
+;
+;-------------------------------------------------------------------------------
+;
+; PLEASE READ THIS:
+;
+; We recommend that you change this value to something of your own choosing. As
+; noted above, FTS4BT and your Datasource locate each other via the connection
+; string.
+;
+; It is possible to have more than Virtual Sniffing configuration on your
+; computer. Let's assume that "Your Configuration" and the "Other Configuration"
+; use the same "ConnectionString".
+;
+; Assume further that the user has started FTS4BT configured using the "Other
+; Configuration".
+;
+; When your Datasource starts, the logic in BTLIInitialize() would configure
+; your client for "Your Configuration", and then connect to the running instance
+; of FTS4BT configured in the "Other Configuration".
+;
+; This is clearly comething you would not want to have happen. The way to
+; prevent it is to change the "ConnectionString" to something that you feel will
+; not be chosen by anyone else.
+;
+ConnectionString=ConnectToMyDataSource
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; [Configuration]
+;;
+[Configuration]
+;
+; "Version" must be present and have a value of "6".
+;
+Version=6
+
+;
+; "Window Title" sets the titlebar for the various dialogs and displays.
+;
+WindowTitle=FTS Virtual Sniffer
+
+;
+; The current source of data is displayed on the main control window.
+; "DriverInfo" sets the text for that item.
+;
+DriverInfo=My Driver Info
+
+;
+; In Bluetooth HCI there are two paths of data flow. One path is from a host to
+; a controller and the other path is from a controller to the host.
+;
+; The "Sides" entry informs FTS4BT of the number of communications paths, their
+; names, and their maximum data rates.
+;
+; Each "side" is described by just a name or a name followed by a comma and the
+; maximum data rate for that side. Multiple side descriptions are separated
+; by semicolons. The name is used in the various displays to identify the
+; source of the data.
+;
+;   Side=DTE                    ; One side, no maximum data rate provided
+;   Side=DTE;DCE                ; Two sides, no maximum data rate provided
+;   Side=DTE,115200;DCE,115200  ; Two sides, maximum data rate is 115,200 bits
+;                               ; per second
+;
+; The maximum data rate value provides the scaling factor for circuit
+; utilization statistics. Utilization computation is suppressed if no maximum
+; data rates are provided.
+;
+Sides=Host;Controller
+
+;
+; "Stack" is optional and is used when protocol decoding is to take place. The
+; stack value is the ID number for the first (lowest level) Decoderscript
+; decoder in the protocol stack.
+;
+; If your communications environment consists of only one decoder, then there
+; will be only one value needed for the "Stack" item.
+;
+; The "Stack" may consist of a list of decoder IDs. In this case, the payload
+; (data area) for one protocol layer is passed to the next decoder in sequence.
+; This items in the list are seperated by commas.
+;
+; The "Stack" item should be removed from the configuration when your
+; communications environment is not protocol oriented.
+;
+;
+; As a convenience to allow similar Personalities that differ only by protocol
+; stack to be defined in the same .Personality file, "Stack" may be defined
+; and/or overidden in the [Personality...] sections below. This feature is
+; only for use with Simplified LiveImport.
+;
+;Stack=<Decoder ID>
+
+;
+; For many protocol stacks, such as Bluetooth, there is information in a given
+; layer that describes the protocol contained in the payload. Decoderscript
+; decoders may return a value that indicates the next level to be decoded.
+;
+; This is referred to as "auto traversal" and is indicated by the "StackAuto"
+; entry. A setting of "true" indicates that auto traversal is used in your
+; protocol stack. When processing the various layers, auto traversal will occur
+; after the last decoder indicated in the "Stack" value above.
+;
+; Traversal is controlled by "[Rules]", see the Decoderscript manual for
+; more information.
+;
+; As a convenience to allow similar Personalities that differ only by protocol
+; stack to be defined in the same .Personality file, "StackAuto" may be defined
+; and/or overidden in the [Personality...] sections below. This feature is
+; only for use with Simplified LiveImport.
+;
+;StackAuto=true
+
+;
+; "SdeName" is optional and provides the name used for the captured data
+; "elements." You may prefer "Chars", "Bytes", etc.
+;
+SdeName=Octets
+
+;
+; Every byte or group of bytes (frame) sent to FTS4BT  may have associated
+; status flags. The "Drf" item describes those flags.
+;
+; Under normal serial data capture, the DRFs contains the error bits (parity,
+; overrun, etc) returned by the communications controller. (UART or USART).
+;
+; For LiveImport, the DRFs can be used to indicate special information about the
+; captured element. For example, BT Virtual uses the DRfs to indicate the packet
+; type.
+;
+; The DRF definition must be in the [Configuration] section. The value below is
+; for BT Virtual ("PACKET" Personality). This is fine as they will likely be
+; set to zero, and thus ignored, in the other Personalities defined below.
+;
+Drf=Command,ACLData,SCOData,Event
+
+;
+; Some or all of the "Drf" flags can be treated as error indicators. This entry
+; identifies which of the "Drf" items represent errors. Data elements with
+; errors are indicated in red on the "Event Display". Protocol frames containing
+; a data element with an error are also indicated in red on the "Frame Display"
+; and "Protocol Navigator".
+;
+DrfErrorMask=0
+
+;
+; Additionally, via the [Configuration] you have the ability to add your own
+; statistical information tables.
+;
+; Please contact Frontline Technical Support for more information.
+;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Personality Definitition
+;;
+;; There are many items that may appear in the personality section. The ones
+;; listed below are common items that are of the most interest to those working
+;; with Virtual Sniffing. Please contact Frontline Tech Support is you would
+;; like more information or assistance in configuring FTS4BT to your particular
+;; needs.
+;;
+;; For convenience, the personality section is defined in two parts. The first
+;; is a common section that contains the actual definition of the Personality.
+;;
+;; This is followed by an actual [Personality`...] section.
+;;
+;; Use of the [Common] section makes it possible to define similar Personalities
+;; dervied from the same basic definition.
+;;
+[Common]
+;
+; "ProgramName" provides the name of executable program for a LiveImport
+; Datasource. When using LiveImport for Virtual Sniffing, the "ProgramName"
+; item MUST be present and MUST be "<none>".
+;
+ProgramName=<none>
+
+;
+; When using LiveImport, the "CmdLine" item identifies the location of
+; this file. At program startup, FTS4BT will read this file to determine its
+; configuration without the need for your Datasource to be active.
+;
+; Your Datasource may be run before you start FTS4BT or after you start the
+; analyzer.
+;
+; For LiveImport this item MUST be present, MUST start with the '@' symbol,
+; and MUST contain the path to this file. The path may be a fully qualified
+; Windows path name, or it may be a path relative to
+; <product installation>\Executables\Core\FTS.exe
+;
+; The following definition is for FTS4BT 8.7.12.0 and later
+;
+CmdLine=@C:\Documents and Settings\All Users\Documents\Frontline Test Equipment\My Decoders\LI Sample.Personality
+;
+; This definition if for versions of FTS4BT 6.8.4.0 to 8.5.5.0
+;
+;CmdLine=@C:\Program Files\Common Files\FTE\My Decoders\BTLISample.Personality
+
+; "CbSizeInKbytes" sets the default size for the in memory capture buffer. The
+; item is optional. If this item is not present, the default size used by
+; FTS4BT is around 2MB.
+;
+; The effect of this setting can be seen on the Options->System Settings
+; dialog.
+;
+CbSizeInKbytes=40960
+
+;
+; "FileSizeInKbytes" sets the default size for the capture file created when
+; capturing to disk.the in memory capture buffer. The item is optional. If this
+; item is not present, the default size used by FTS4BT is around 2MB
+;
+; The effect of this setting can be seen on the Options->System Settings
+; dialog.
+;
+FileSizeInKbytes=81920
+
+;
+; "WrapBuffer" controls the action used by FTS4BT when the current in memory
+; capture buffer or capture file is full. When set to "TRUE", the buffer is
+; "wrapped" and new information replaces older information. When set to "FALSE"
+; capture stops when the buffer is full.
+;
+; If this item is not present, a default of "FALSE" is used.
+;
+; The effects of this setting can be seen on the Options->System Settings
+; dialog.
+;
+WrapBuffer=TRUE
+
+;
+; The FTS4BT protocol decoding system keeps information about each message
+; frame that is processed in a companion file. The "CompanionSizeMultiplier"
+; item sets the size of the companion file as a multiple of the size of the
+; current capture buffer.
+;
+; If you are using am in memory capture buffer of 2MB, and you have the
+; "CompanionSizeMultiplier" set to 2, the maximum size of the companion file
+; will be 4MB.
+;
+; If this item is not present, a value of 2 is used.
+;
+; Changes to the "CompanionSizeMultiplier" are indicated when the decoding
+; system is unable to display the decoded output for a message frame that is
+; currently in the capture buffer. Protocols that use a lot of decoder static
+; data, many decoder tags, or have complicated protocol stacks often need the
+; "CompanionSizeMultipler" to be increased.
+;
+CompanionSizeMultiplier=6
+
+;
+; "ProtocolTabOrder" is an optional entry that can be useful when working with
+; a protocol stack. The "ProtocolTabOrder" item consists of a list of decoder
+; IDs. When the Frame Display is creating the list of protocol tabs, the
+; decoders listed in the "ProtocolTabOrder" will appear at the left side of the
+; list in the order given.
+;
+;ProtocolTabOrder=0x00000001,0x0000002,etc
+
+;
+; Also when working with a protocol stack where there are multiple decoders in
+; use, the "Additional Decoder Dirs" item describes the locations of decoders,
+; protocol traversal rules, and other items which are not in the same folder
+; as this Personality file.
+;
+; When working in a simple single protocol environment, this item is not needed.
+;
+Additional Decoder Dirs=bluetooth;async;ip;ethernet;oui;802.15.3;usb;mdp;uma;sip;802.11;hid;
+
+;
+; Post processing plugins ("observers") are loaded based on the personality.
+; The two defined below are for Bluetooth SCO/eSCO audio extraction and general
+; profile level data extraction: OPP, FTP, A2DP, etc.
+;
+Observers=Observers\DataExtraction.dll
+
+;
+; This is the the help file that should be used by Virtual Sniffers
+;
+Help File=ComProbe.chm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; [Personality`...]
+;;
+;; The Personality section name is very important. The format of the name is
+;; dependant on the product(s) that your Datasource will be used with.
+;;
+;; The name is formed by starting with the word "Personality" followed by a
+;; "reverse single quotation mark". (Sometimes known as a "back tick", this is
+;; often found just to the left of the "1" key on your keyboard along with the
+;; tilde ("~") character.)
+;;
+;; The product name that your Datasource will be used with comes next. "FTS4BT"
+;; is called for here.
+;;
+;; After the product name comes another "back tick" and the word "Generic".
+;; "Generic" tells FTS4BT that you will be using a Live Import (Virtual
+;; Sniffing) Datasource to provide your data.
+;;
+;; Finally, following yet another "`" comes the name of your personality. The
+;; name is not critical, but we would recommend that it be the same as the file
+;; for the .Personality file.
+;;
+;; So, for a personality named "Fred" that will be used with FTS4BT, the
+;; complete name is
+;;
+;;      [Personality`FTS4BT`Generic`Fred]
+;;
+;;
+;; Note that because of the way the Simplified LiveImport locates Personalities,
+;; "ProgramName=<none>" must be present in each definition even it is given
+;; in the [Common] section.
+;;
+;;------------------------------------------------------------------------------
+;;
+;; PLEASE READ THIS:
+;;
+;; We recommend that you change the names of the Personalities below to names
+;; of your own choosing.
+;;
+;; It is possible to have more than Virtual Sniffing configuration on your
+;; computer. If two Virtual Sniffing configurations use the same Personality
+;; names, you will have no way to be sure that BTLIInitialize(), BTLIRunFTS()
+;; and BTLIGetFTSVersion() will always choose your configuration.
+;;
+;; You only need to change the last field in the Personality name. That is
+;;
+;;  Packet_Sample to Whatever You Like
+;;  H4_Sample     to Whatever You Like
+;;  H5_Sample     to Whatever You Like
+;;  BCSP_Sample   to Whatever You Like
+;;
+[Personality`FTS4BT`Generic`MyLiveImport]
+; -- "Bluetooth Virtual Transport" (BT Virtual.dec)
+Stack=0x7f008039
+StackAuto=true
+ProgramName=<none>
+
+;
+; The Path and SubPath entries are used to make your Personality available
+; as a selection on the FTS4BT startup menu.
+;
+; "Path" gives the location in the selection tree.
+;
+; "SubPath" is the name entry that should be selected in order to start FTS4BT
+; configured using the other items in the current Personality.
+;
+Path=Virtual Sniffing\Live Import
+SubPath=GetDataFromMyDataSource
+
+;[Personality`FTS4BT`Generic`H4_Sample]
+; -- "HCI UART" (BT HCI Uart.dec)
+;Stack=0x7f008034
+;StackAuto=true
+;ProgramName=<none>
+;Path=Virtual Sniffing\BTLI Samples
+;SubPath=H4 Sample
+
+;[Personality`FTS4BT`Generic`H5_Sample]
+; -- "Three-Wire UART" (BT 3wire.dec)
+;Stack=0x7f008041
+;StackAuto=true
+;ProgramName=<none>
+;Path=Virtual Sniffing\BTLI Samples
+;SubPath=H5 Sample
+
+;[Personality`FTS4BT`Generic`BCSP_Sample]
+; -- "BCSP" (BCSP.dec)
+;Stack=0x7f008033
+;StackAuto=true
+;ProgramName=<none>
+;Path=Virtual Sniffing\BTLI Samples
+;SubPath=BCSP Sample
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Predefined Stacks
+;;
+;; The [Predefined Stacks] section is optional. This section is useful when you
+;; will be using your Datasource with more than one protocol stack. This section
+;; loads the "Select a Protocol Stack" dialog found under the Options->Protocol
+;; Stack menu item.
+;;
+;; Generally, you should provide this section with at least one entry:
+;;
+;;      None (no protocols),No,
+;;
+;; This item will allow you to view your captured data with no protocol decoding
+;; applied.
+;;
+;; See the DecoderScript manual for more information.
+;;
+[Predefined Stacks]
+None (no protocols),No,
+
+[end]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Rules
+;;
+;; The [Rules] section is optional. It provides protocol stack traversal rules
+;; allowing the Serialtest/FTS4Control decoding engine to move automatically
+;; move between protocol layers in a message.
+;;
+;; See the DecoderScript manual for more information.
+;;
+[Rules]
+
+[end]
